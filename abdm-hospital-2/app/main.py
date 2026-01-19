@@ -88,10 +88,6 @@ async def serve_page(page: str):
     if os.path.exists(frontend_file):
         return FileResponse(frontend_file)
     raise HTTPException(status_code=404, detail="Page not found")
-    frontend_file = os.path.join(frontend_path, f"{page}.html")
-    if os.path.exists(frontend_file):
-        return FileResponse(frontend_file)
-    raise HTTPException(status_code=404, detail="Page not found")
 
 # if __name__ == "__main__":
 #     import uvicorn

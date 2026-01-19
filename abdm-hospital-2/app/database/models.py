@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, ForeignKey, DateTime, Text, Boolean, Integer, JSON
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.types import Uuid
 from app.database.connection import Base
 import uuid
 from datetime import datetime
@@ -8,7 +8,7 @@ from datetime import datetime
 class Patient(Base):
     __tablename__ = "patients"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     name = Column(String, nullable=False)
     mobile = Column(String, unique=True, nullable=False)
     abha_id = Column(String, unique=True, nullable=True)
@@ -21,8 +21,8 @@ class Patient(Base):
 class Visit(Base):
     __tablename__ = "visits"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
-    patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    patient_id = Column(Uuid(as_uuid=True), ForeignKey("patients.id"), nullable=False)
     visit_type = Column(String, nullable=False)
     department = Column(String, nullable=False)
     doctor_id = Column(String, nullable=True)
@@ -34,8 +34,8 @@ class Visit(Base):
 class CareContext(Base):
     __tablename__ = "care_contexts"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
-    patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    patient_id = Column(Uuid(as_uuid=True), ForeignKey("patients.id"), nullable=False)
     context_name = Column(String, nullable=False)
     description = Column(String, nullable=True)
 
@@ -49,8 +49,8 @@ class HealthRecord(Base):
     """
     __tablename__ = "health_records"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
-    patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    patient_id = Column(Uuid(as_uuid=True), ForeignKey("patients.id"), nullable=False)
     
     # Record metadata
     record_type = Column(String, nullable=False)  # PRESCRIPTION, DIAGNOSTIC_REPORT, LAB_REPORT, etc.

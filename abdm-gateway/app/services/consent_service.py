@@ -1,6 +1,7 @@
 import uuid 
 from typing import Dict, Optional
 from datetime import datetime, timezone
+from fastapi import HTTPException, status
 
 _consents: Dict[str, Dict] = {}
 
@@ -42,4 +43,5 @@ def notify_consent(consent_id: str, status: str) -> Dict:
         if status == "GRANTED":
             _consents[consent_id]["grantedAt"] = datetime.now(timezone.utc).isoformat()
         return {"consentRequestId": consent_id, "status": status}
-    
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Consent not found")

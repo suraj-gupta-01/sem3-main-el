@@ -12,6 +12,7 @@ from app.services.health_data_service import (
     decrypt_and_store_health_data
 )
 from app.services.gateway_service import send_health_data_to_gateway, TokenManager
+from app.utils.encryption import decrypt_health_data
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
 
@@ -316,9 +317,13 @@ async def decrypt_and_store_webhook_data(
     try:
         print(f"\n🔐 HIU: Decrypting health data for request {request_id}...")
         
-        # Extract patient_id from request (in real system, would look up in request tracking)
-        # For now, use a default patient ID
-        patient_id = "patient-001"
+        # Decrypt the data first to extract patient_id
+        decrypted_data = decrypt_health_data(encrypted_data)
+        
+        # Extract patient_id from decrypted data
+        patient_id = decrypted_data.get("patientId", "patient-001")
+        
+        print(f"Extracted patient_id: {patient_id}")
         
         # Decrypt and store
         success = await decrypt_and_store_health_data(

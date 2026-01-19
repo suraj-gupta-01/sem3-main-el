@@ -93,10 +93,16 @@ const api = {
     },
     async search(mobile) {
       const patients = await api.get("/api/patient/list");
+      console.log("All patients:", patients);
+      console.log("Searching for mobile:", mobile);
       const patient = patients.find(
         (p) => String(p.mobile).trim() === String(mobile).trim(),
       );
-      return patient || null;
+      if (patient) {
+        return { found: true, patient };
+      } else {
+        return { found: false };
+      }
     },
     async list() {
       return api.get("/api/patient/list");

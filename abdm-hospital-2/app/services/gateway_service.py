@@ -23,7 +23,7 @@ class TokenManager:
         response = requests.post(
             f"{GATEWAY_BASE_URL}/api/auth/session",
             json={"clientId": client_id, "clientSecret": client_secret, "grantType": "client_credentials"},
-            headers=headers1,
+            headers=get_basic_headers(),
         )
         if response.status_code == 200:
             new_token = response.json()["accessToken"]
@@ -114,14 +114,15 @@ class TokenManager:
     @classmethod
     def get_hospital_webhook_url(cls):
         """Get hospital's own webhook URL for receiving data"""
-        return os.getenv("HOSPITAL_WEBHOOK_URL", "http://localhost:8080/webhook")
+        return os.getenv("HOSPITAL_WEBHOOK_URL", "http://localhost:8081/webhook")
 
 
-headers1 = {
-    "REQUEST-ID": str(uuid.uuid4()),
-    "TIMESTAMP": datetime.now(timezone.utc).isoformat(),
-    "X-CM-ID": os.getenv("X_CM_ID", "hospital-main")
-}
+def get_basic_headers():
+    return {
+        "REQUEST-ID": str(uuid.uuid4()),
+        "TIMESTAMP": datetime.now(timezone.utc).isoformat(),
+        "X-CM-ID": os.getenv("X_CM_ID", "hospital-main")
+    }
 
 def get_headers_with_auth():
     return {
@@ -151,7 +152,7 @@ async def create_auth_session():
         response = await client.post(
             f"{GATEWAY_BASE_URL}/api/auth/session",
             json={"clientId": client_id, "clientSecret": client_secret, "grantType": "client_credentials"},
-            headers=headers1,
+            headers=get_basic_headers(),
         )
         response_data = response.json()
         TokenManager.set_token(response_data["accessToken"])

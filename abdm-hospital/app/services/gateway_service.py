@@ -23,7 +23,7 @@ class TokenManager:
         response = requests.post(
             f"{GATEWAY_BASE_URL}/api/auth/session",
             json={"clientId": client_id, "clientSecret": client_secret, "grantType": "client_credentials"},
-            headers=headers1,
+            headers=get_basic_headers(),
         )
         if response.status_code == 200:
             new_token = response.json()["accessToken"]
@@ -117,14 +117,15 @@ class TokenManager:
         return os.getenv("HOSPITAL_WEBHOOK_URL", "http://localhost:8080/webhook")
 
 
-headers1 = {
-    "REQUEST-ID": str(uuid.uuid4()),
-    "TIMESTAMP": datetime.now(timezone.utc).isoformat(),
-    "X-CM-ID": os.getenv("X_CM_ID", "hospital-main")
-}
+def get_basic_headers():
+    return {
+        "REQUEST-ID": str(uuid.uuid4()),
+        "TIMESTAMP": datetime.now(timezone.utc).isoformat(),
+        "X-CM-ID": os.getenv("X_CM_ID", "hospital-main")
+    }
 
 def get_headers_with_auth():
-    return {
+        return {
         "REQUEST-ID": str(uuid.uuid4()),
         "TIMESTAMP": datetime.now(timezone.utc).isoformat(),
         "X-CM-ID": os.getenv("X_CM_ID", "hospital-main"),
@@ -151,7 +152,7 @@ async def create_auth_session():
         response = await client.post(
             f"{GATEWAY_BASE_URL}/api/auth/session",
             json={"clientId": client_id, "clientSecret": client_secret, "grantType": "client_credentials"},
-            headers=headers1,
+            headers=get_basic_headers(),
         )
         response_data = response.json()
         TokenManager.set_token(response_data["accessToken"])
@@ -233,13 +234,34 @@ async def link_care_contexts_to_gateway(payload: Dict[str, Any]):
     }
 
     async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{GATEWAY_BASE_URL}/api/link/carecontext",
-            headers=get_headers_with_auth(),
-            json=body,
-        )
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = await client.post(
+                f"{GATEWAY_BASE_URL}/api/link/carecontext",
+                headers=get_headers_with_auth(),
+                json=body,
+            )
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            # Check if it's a token expiration error
+            if e.response.status_code == 401 or "expired token" in str(e.response.text).lower():
+                # Try to refresh the token and retry once
+                try:
+                    TokenManager.refresh_token()
+                    # Retry with new token
+                    response = await client.post(
+                        f"{GATEWAY_BASE_URL}/api/link/carecontext",
+                        headers=get_headers_with_auth(),
+                        json=body,
+                    )
+                    response.raise_for_status()
+                    return response.json()
+                except Exception as refresh_error:
+                    raise HTTPException(
+                        status_code=401,
+                        detail=f"Token expired and refresh failed: {str(refresh_error)}"
+                    )
+            raise
 
 async def discover_patient(payload: Dict[str, Any]):
     async with httpx.AsyncClient() as client:
@@ -422,6 +444,49 @@ async def get_communication_history(bridge_id: str):
             headers=get_headers_with_auth()
         )
         return response.json()
+
+
+async def notify_gateway_new_record(payload: Dict[str, Any]):
+    """
+    Notify the ABDM Gateway about a newly created health record.
+    This allows the gateway to index the record for potential sharing.
+    
+    Args:
+        payload: Dict containing:
+            - patientId: UUID of the patient
+            - patientAbhaId: ABHA ID of the patient
+            - recordId: UUID of the health record
+            - recordType: Type of record (PRESCRIPTION, DIAGNOSTIC_REPORT, etc.)
+            - recordDate: ISO date string
+            - createdAt: ISO timestamp
+            - title: Record title
+    
+    Returns:
+        Gateway response
+    """
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.post(
+                f"{GATEWAY_BASE_URL}/api/health-records/notify",
+                headers=get_headers_with_auth(),
+                json=payload
+            )
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            # If endpoint doesn't exist yet, return success anyway
+            if e.response.status_code == 404:
+                return {
+                    "status": "acknowledged",
+                    "message": "Gateway endpoint not yet implemented, record saved locally"
+                }
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to notify gateway: {str(e)}"
+            )
+
 
 async def main():
     # print(await create_auth_session())

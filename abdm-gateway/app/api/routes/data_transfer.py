@@ -31,7 +31,7 @@ def request_health_info_endpoint(body: RequestHealthInfoRequest,
                               body.careContextId, body.dataTypes)
     )
 
-@router.get("/request/{request_id}")
+@router.get("/request/{request_id}/status")
 def get_request_status_endpoint(request_id: str,
                                 token: dict = Depends(get_current_token)):
     request_status = get_data_request_status(request_id)
