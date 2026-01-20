@@ -22,7 +22,7 @@ class LinkCareContextResponse(BaseModel):
 
 class DiscoverPatientRequest(BaseModel):
     mobile: str
-    name: str = None
+    name: Optional[str] = None
 
 class DiscoverPatientResponse(BaseModel):
     patientId: str

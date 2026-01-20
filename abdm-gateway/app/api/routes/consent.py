@@ -39,5 +39,7 @@ def fetch_consent_endpoint(body: ConsentFetchRequest,
     return ConsentFetchResponse(**consent)
 
 @router.post("/notify")
-def notify_consent_endpoint(body: ConsentNotifyRequest):
+def notify_consent_endpoint(body: ConsentNotifyRequest,
+                           token=Depends(get_current_token),
+                           headers=Depends(require_gateway_headers)):
     return notify_consent(body.consentRequestId, body.status)

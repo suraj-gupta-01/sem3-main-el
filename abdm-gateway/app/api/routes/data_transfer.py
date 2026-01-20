@@ -41,7 +41,8 @@ def get_request_status_endpoint(request_id: str,
     return request_status
 
 @router.post("/notify", response_model=DataFlowNotifyResponse)
-def data_flow_notify_endpoint(body: DataFlowNotifyRequest):
+def data_flow_notify_endpoint(body: DataFlowNotifyRequest,
+                              token: dict = Depends(get_current_token)):
     return DataFlowNotifyResponse(
         **notify_data_flow(body.txnId, body.status, body.hipId)
     )

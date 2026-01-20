@@ -25,3 +25,7 @@ from .data_transfer import (  # noqa: F401
     DataFlowNotifyRequest, DataFlowNotifyResponse,
     EncryptedHealthInfo, HealthInfoMetadata
 )
+from .communication import (  # noqa: F401
+    SendMessageRequest, SendMessageResponse,
+    DataRequest, DataResponse, MessageHistoryItem, MessageHistoryResponse
+)

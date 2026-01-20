@@ -1,7 +1,7 @@
 import os 
 from functools import lru_cache
 from typing import Literal
-from dotenv import load_dotenv # type: ignore
+from dotenv import load_dotenv
 
 load_dotenv()
 

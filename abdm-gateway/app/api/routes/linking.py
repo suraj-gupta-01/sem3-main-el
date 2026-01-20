@@ -47,5 +47,7 @@ def confirm(body: LinkConfirmRequest,
     return LinkConfirmResponse(**confirm_link(body.patientId, body.txnId, body.otp))
 
 @router.post("/notify")
-def notify(body: LinkNotifyRequest):
+def notify(body: LinkNotifyRequest,
+                          token=Depends(get_current_token),
+                          headers=Depends(require_gateway_headers)):
     return notify_link(body.txnId, body.status)
