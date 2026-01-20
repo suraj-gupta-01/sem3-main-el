@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 import os
 from dotenv import load_dotenv
 
@@ -21,8 +20,9 @@ SessionLocal = sessionmaker(
     expire_on_commit=False  # keep attributes usable after commit for seeding steps
 )
 
-# Base class for models
-Base = declarative_base()
+# Create the base class for declarative models
+class Base(DeclarativeBase):
+    pass
 
 def get_db():
     """Dependency to get the database session."""

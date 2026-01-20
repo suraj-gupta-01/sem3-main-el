@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.database.models import Visit, Patient, CareContext
 import uuid
-from datetime import datetime
+from datetime import datetime,timezone
 from app.services import gateway_service
 import asyncio
 import logging
@@ -78,7 +78,7 @@ def create_and_link_care_context(visit_id: str, patient_id: str, department: str
             return
         
         # Create care context with department as name
-        care_context_name = f"{department} Care - {datetime.now().year}"
+        care_context_name = f"{department} Care - {datetime.now(timezone.utc).year}"
         care_context = CareContext(
             id=uuid.uuid4(),
             patient_id=patient_uuid,
